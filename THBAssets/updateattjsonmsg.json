@@ -1,0 +1,105 @@
+{
+  "ruleChain": {
+    "additionalInfo": null,
+    "name": "UpdateAttJsonMsg",
+    "firstRuleNodeId": null,
+    "root": false,
+    "debugMode": true,
+    "configuration": null
+  },
+  "metadata": {
+    "firstNodeIndex": 0,
+    "nodes": [
+      {
+        "additionalInfo": {
+          "layoutX": 330,
+          "layoutY": 156
+        },
+        "type": "org.thingsboard.rule.engine.filter.TbMsgTypeSwitchNode",
+        "name": "msgRouter",
+        "debugMode": true,
+        "configuration": {
+          "version": 0
+        }
+      },
+      {
+        "additionalInfo": {
+          "layoutX": 520,
+          "layoutY": 329
+        },
+        "type": "org.thingsboard.rule.engine.metadata.TbGetAttributesNode",
+        "name": "atributosCompartidos",
+        "debugMode": true,
+        "configuration": {
+          "clientAttributeNames": [],
+          "sharedAttributeNames": [
+            "TiempoTazaArroz",
+            "TiempoTazaMediaArroz"
+          ],
+          "serverAttributeNames": [],
+          "latestTsKeyNames": [],
+          "tellFailureIfAbsent": true
+        }
+      },
+      {
+        "additionalInfo": {
+          "layoutX": 773,
+          "layoutY": 94
+        },
+        "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
+        "name": "armarJsonConTodoslosAtributos",
+        "debugMode": true,
+        "configuration": {
+          "jsScript": "var nmsg =  {};\nnmsg.method = \"actualizar\";\n\nvar params = {};\nparams.elapseTaza = metadata.shared_TiempoTazaArroz;\nparams.elapseTazaMedia = metadata.shared_TiempoTazaMediaArroz;\nnmsg.params = params;\nmsgType = 'REQUEST_TO_DEVICE';\nreturn {msg: nmsg, metadata: metadata, msgType: msgType};"
+        }
+      },
+      {
+        "additionalInfo": {
+          "layoutX": 845,
+          "layoutY": 320
+        },
+        "type": "org.thingsboard.rule.engine.rpc.TbSendRPCRequestNode",
+        "name": "sendNewMsg",
+        "debugMode": true,
+        "configuration": {
+          "timeoutInSeconds": 60
+        }
+      },
+      {
+        "additionalInfo": {
+          "layoutX": 1179,
+          "layoutY": 399
+        },
+        "type": "org.thingsboard.rule.engine.action.TbLogNode",
+        "name": "log",
+        "debugMode": false,
+        "configuration": {
+          "jsScript": "return 'Incoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);"
+        }
+      }
+    ],
+    "connections": [
+      {
+        "fromIndex": 0,
+        "toIndex": 1,
+        "type": "Attributes Updated"
+      },
+      {
+        "fromIndex": 1,
+        "toIndex": 2,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 3,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 3,
+        "toIndex": 4,
+        "type": "Failure"
+      }
+    ],
+    "ruleChainConnections": null
+  }
+}

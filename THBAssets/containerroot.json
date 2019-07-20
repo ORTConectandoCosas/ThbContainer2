@@ -60,8 +60,8 @@
       },
       {
         "additionalInfo": {
-          "layoutX": 428,
-          "layoutY": 494
+          "layoutX": 670,
+          "layoutY": 598
         },
         "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
         "name": "actualizar Estado",
@@ -72,8 +72,8 @@
       },
       {
         "additionalInfo": {
-          "layoutX": 314,
-          "layoutY": 382
+          "layoutX": 410,
+          "layoutY": 432
         },
         "type": "org.thingsboard.rule.engine.metadata.TbGetAttributesNode",
         "name": "agregarAtributos",
@@ -117,7 +117,7 @@
         "name": "PocoEspacio",
         "debugMode": true,
         "configuration": {
-          "jsScript": "\nreturn msg.space < metadata.shared_minSpaceAvailable;"
+          "jsScript": "\nreturn msg.space > metadata.shared_minSpaceAvailable;"
         }
       },
       {
@@ -231,6 +231,20 @@
         "type": "Success"
       }
     ],
-    "ruleChainConnections": null
+    "ruleChainConnections": [
+      {
+        "fromIndex": 0,
+        "targetRuleChainId": {
+          "entityType": "RULE_CHAIN",
+          "id": "6fa20750-a358-11e9-8682-91100fc2b087"
+        },
+        "additionalInfo": {
+          "layoutX": 178,
+          "layoutY": 599,
+          "ruleChainNodeId": "rule-chain-node-14"
+        },
+        "type": "Attributes Updated"
+      }
+    ]
   }
 }
