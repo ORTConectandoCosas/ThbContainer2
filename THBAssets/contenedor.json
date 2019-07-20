@@ -379,6 +379,112 @@
           ]
         },
         "id": "95b3b952-29fe-3bda-64d6-b73f2c2ec22c"
+      },
+      "b87fce73-8e48-23ef-a912-f343638b7a45": {
+        "isSystemType": true,
+        "bundleAlias": "input_widgets",
+        "typeAlias": "update_shared_integer_attribute",
+        "type": "latest",
+        "title": "New widget",
+        "sizeX": 7.5,
+        "sizeY": 3,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "dataKeys": [
+                {
+                  "name": "TiempoTazaArroz",
+                  "type": "attribute",
+                  "label": "TiempoTazaArroz",
+                  "color": "#2196f3",
+                  "settings": {},
+                  "_hash": 0.3144237621185966
+                }
+              ],
+              "entityAliasId": "ef7845cb-3f8d-7cc7-0ac2-166d02114cd7"
+            }
+          ],
+          "timewindow": {
+            "realtime": {
+              "timewindowMs": 60000
+            }
+          },
+          "showTitle": true,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "8px",
+          "settings": {
+            "showResultMessage": true,
+            "showLabel": true
+          },
+          "title": "TiempoTazaArroz",
+          "dropShadow": true,
+          "enableFullscreen": false,
+          "widgetStyle": {},
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "useDashboardTimewindow": true,
+          "showLegend": false,
+          "actions": {},
+          "displayTimewindow": true
+        },
+        "id": "b87fce73-8e48-23ef-a912-f343638b7a45"
+      },
+      "2c6fa8d3-101f-da85-3912-8fcd15495160": {
+        "isSystemType": true,
+        "bundleAlias": "input_widgets",
+        "typeAlias": "update_shared_integer_attribute",
+        "type": "latest",
+        "title": "New widget",
+        "sizeX": 7.5,
+        "sizeY": 3,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "dataKeys": [
+                {
+                  "name": "TiempoTazaMediaArroz",
+                  "type": "attribute",
+                  "label": "TiempoTazaMediaArroz",
+                  "color": "#2196f3",
+                  "settings": {},
+                  "_hash": 0.11691793069430068
+                }
+              ],
+              "entityAliasId": "ef7845cb-3f8d-7cc7-0ac2-166d02114cd7"
+            }
+          ],
+          "timewindow": {
+            "realtime": {
+              "timewindowMs": 60000
+            }
+          },
+          "showTitle": true,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "8px",
+          "settings": {
+            "showResultMessage": true,
+            "showLabel": true
+          },
+          "title": "TiempoTaza Media",
+          "dropShadow": true,
+          "enableFullscreen": false,
+          "widgetStyle": {},
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "useDashboardTimewindow": true,
+          "showLegend": false,
+          "actions": {},
+          "displayTimewindow": true
+        },
+        "id": "2c6fa8d3-101f-da85-3912-8fcd15495160"
       }
     },
     "states": {
@@ -448,6 +554,18 @@
                 "sizeX": 7,
                 "sizeY": 3,
                 "row": 0,
+                "col": 0
+              },
+              "b87fce73-8e48-23ef-a912-f343638b7a45": {
+                "sizeX": 7,
+                "sizeY": 3,
+                "row": 3,
+                "col": 0
+              },
+              "2c6fa8d3-101f-da85-3912-8fcd15495160": {
+                "sizeX": 7,
+                "sizeY": 3,
+                "row": 6,
                 "col": 0
               }
             },
