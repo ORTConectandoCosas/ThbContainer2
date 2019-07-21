@@ -24,8 +24,8 @@
       },
       {
         "additionalInfo": {
-          "layoutX": 712,
-          "layoutY": 35
+          "layoutX": 648,
+          "layoutY": 8
         },
         "type": "org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode",
         "name": "saveTelemetry",
@@ -36,8 +36,8 @@
       },
       {
         "additionalInfo": {
-          "layoutX": 711,
-          "layoutY": 263
+          "layoutX": 879,
+          "layoutY": 311
         },
         "type": "org.thingsboard.rule.engine.rpc.TbSendRPCRequestNode",
         "name": "sendToContainer",
@@ -48,8 +48,8 @@
       },
       {
         "additionalInfo": {
-          "layoutX": 645,
-          "layoutY": 373
+          "layoutX": 617,
+          "layoutY": 382
         },
         "type": "org.thingsboard.rule.engine.action.TbLogNode",
         "name": "log",
@@ -122,8 +122,8 @@
       },
       {
         "additionalInfo": {
-          "layoutX": 1215,
-          "layoutY": 262
+          "layoutX": 1278,
+          "layoutY": 50
         },
         "type": "org.thingsboard.rule.engine.rpc.TbSendRPCRequestNode",
         "name": "sendLockMsg",
@@ -141,7 +141,7 @@
         "name": "prepararEmptyMensaje",
         "debugMode": true,
         "configuration": {
-          "jsScript": "var newMsg = {};\nnewMsg.method = \"empty\";\nnewMsg.params = true;\nmsgType = 'RPC_CALL_FROM_SERVER_TO_DEVICE';\nreturn {msg: newMsg, metadata: metadata, msgType: msgType};"
+          "jsScript": "var newMsg = {};\nnewMsg.method = \"empty\";\nnewMsg.params = true;\nmsgType = 'RPC_REQUEST_TO_DEVICE';\nreturn {msg: newMsg, metadata: metadata, msgType: msgType};"
         }
       },
       {
@@ -153,7 +153,7 @@
         "name": "preparaLleno",
         "debugMode": true,
         "configuration": {
-          "jsScript": "var newMsg = {};\nnewMsg.method = \"empty\";\nnewMsg.params = false;\nmsgType = 'RPC_CALL_FROM_SERVER_TO_DEVICE';\nreturn {msg: newMsg, metadata: metadata, msgType: msgType};"
+          "jsScript": "var newMsg = {};\nnewMsg.method = \"empty\";\nnewMsg.params = false;\nmetadata.request_id = 1;\nmsgType = 'RPC_REQUEST_TO_DEVICE';\nreturn {msg: newMsg, metadata: metadata, msgType: msgType};"
         }
       },
       {
@@ -163,7 +163,7 @@
         },
         "type": "org.thingsboard.rule.engine.action.TbLogNode",
         "name": "log2",
-        "debugMode": false,
+        "debugMode": true,
         "configuration": {
           "jsScript": "return 'Incoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);"
         }
@@ -191,11 +191,6 @@
         "type": "RPC Request to Device"
       },
       {
-        "fromIndex": 1,
-        "toIndex": 7,
-        "type": "Success"
-      },
-      {
         "fromIndex": 5,
         "toIndex": 4,
         "type": "Success"
@@ -203,6 +198,11 @@
       {
         "fromIndex": 6,
         "toIndex": 1,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 6,
+        "toIndex": 7,
         "type": "Success"
       },
       {
@@ -239,8 +239,8 @@
           "id": "6fa20750-a358-11e9-8682-91100fc2b087"
         },
         "additionalInfo": {
-          "layoutX": 178,
-          "layoutY": 599,
+          "layoutX": 124,
+          "layoutY": 410,
           "ruleChainNodeId": "rule-chain-node-14"
         },
         "type": "Attributes Updated"

@@ -15,12 +15,12 @@ https://github.com/Martinsos/arduino-lib-hc-sr04 for distance sensor
 //  configuración datos wifi 
 // descomentar el define y poner los valores de su red y de su dispositivo
 #define WIFI_AP "wifi"
-#define WIFI_PASSWORD "wifipass"
+#define WIFI_PASSWORD "wifi pass"
 
 
 //  configuración datos thingsboard
 #define NODE_NAME "CONTAINER"   //nombre que le pusieron al dispositivo cuando lo crearon
-#define NODE_TOKEN "deviceid"   //Token que genera Thingboard para dispositivo cuando lo crearon
+#define NODE_TOKEN "device Token"   //Token que genera Thingboard para dispositivo cuando lo crearon
 
 
 //***************NO MODIFICAR *********************
@@ -37,7 +37,7 @@ char responseTopic[] = "v1/devices/me/rpc/response/+"; // RPC responce
 char attributesTopic[] = "v1/devices/me/attributes";  //El Servidor usa este topico para enviar atributos
 
 
-// declarar cliente Wifi y PubSus
+// declare clients for Wifi y PubSus
 WiFiClient wifiClient;
 PubSubClient client(wifiClient);
 
@@ -47,7 +47,6 @@ const int dispenserServoPin = D2;
 const int halfCupButtonPin = D1;    // the number of the pushbutton pin for half cup
 const int fullCupButtonPin = D0;    // the number of the pushbutton pin for full cup
 
-bool dispenserState = false;         // the current state of the dispenser is closed
 
 // Declare servo
 Servo dispenserServo; 
@@ -57,30 +56,28 @@ int dispenserClosePos = 0;
 UltraSonicDistanceSensor distanceSensor(D4, D5);  // Initialize sensor that uses digital pins.
 
 
+// app logic variables
+bool dispenserState = false;         // the current state of the dispenser is closed
 
-int halfCupButtonState;             // the current reading from the input pin
+int halfCupButtonState = LOW;             // the current reading from the input pin
 int halfCupLastButtonState = LOW;   // the previous reading from the input pin
 
-int fullCupButtonState;             // the current reading from the input pin
+int fullCupButtonState = LOW;             // the current reading from the input pin
 int fullCupLastButtonState = LOW;   // the previous reading from the input pin
 
 // Debounce variables (see  https://www.arduino.cc/en/Tutorial/Debounce)
 unsigned long lastDebounceTime = 0;  // the last time the output pin was toggled
-unsigned long debounceDelay = 50;    // the debounce time; increase if the output flickers
+unsigned long debounceDelay = 20;    // the debounce time; increase if the output flickers
 
-//-------------------------------------------------------------
-
-//-------------------------------------------------------------
-// app logic state of userRead, userAuthenticated and bottleDetected
 bool serverDispenseButtonState = false;
 bool serverLockMode = false;
-bool dispenserCommand = false;
 bool dispenserEmpty = false;
 unsigned int serverDispensingTime = 6000;
 unsigned int halfCupDispensingTime = 2000;
 unsigned int fullCupDispensingTime = 8000;
+
 //-------------------------------------------------------------
-// THB request timer variables
+// THB telementry timer variables
 //-------------------------------------------------------------
 unsigned long lastSend;
 int elapsedTime = 1000; // elapsed time request vs reply
@@ -89,25 +86,24 @@ int requestNumber =1;
 
 // App Logic
 void setup() { 
-  Serial.begin(9600);
-
-  // init wifi & pubsus callbacks
-  Serial.println("init connection");
+    Serial.begin(9600);
   
-  connectToWiFi();
-  delay(10);
-  
-  client.setServer(thingsboardServer, 1883);
-  client.setCallback(on_message);
-   
-  lastSend = 0; // variable to ctrl delays
-      
-  //Dispenser init
-  pinMode(halfCupButtonPin, INPUT);
-  pinMode(fullCupButtonPin, INPUT);
-  
-    // servo setup
-  dispenserServo.attach(dispenserServoPin);
+    // init wifi & pubsus callbacks
+    Serial.println("init connection");
+    
+    connectToWiFi();
+    delay(10);
+    
+    client.setServer(thingsboardServer, 1883);
+    client.setCallback(on_message);
+     
+    lastSend = 0; // variable to ctrl delays
+        
+    //Dispenser init
+    pinMode(halfCupButtonPin, INPUT);
+    pinMode(fullCupButtonPin, INPUT);
+    dispenserServo.attach(dispenserServoPin);
+    lastSend = millis();
 }
  
 void loop() 
@@ -118,28 +114,31 @@ void loop()
 
     if (serverLockMode == false) {
         if (dispenserEmpty == false) {
-          unsigned int startDispensing = millis();
+          unsigned int startDispensing;
           
-          // check physical button halfCup
+          // check physical button for halfCup
+          startDispensing = millis();
           do {
               readDispenserButtonHCB();
+              // Check timeout if user does not presses the button again
               if ((millis() - startDispensing > halfCupDispensingTime)) {
                   dispenserState = false;
                   }
-            yield();
-            client.loop();
+            yield();  //let node do some work while in loop
+            client.loop(); //let pubsus do some work while in loop
           } while(dispense());
 
-          startDispensing = millis();
           
-          // check physical button halfCup
+          // check physical button for halfCup
+          startDispensing = millis();
           do {
               readDispenserButtonFCB();
+              // Check timeout if user does not presses the button again
               if ((millis() - startDispensing > fullCupDispensingTime)) {
                   dispenserState = false;
                   }
-            yield();
-            client.loop();
+              yield();  //let node do some work while in loop
+              client.loop(); //let pubsus do some work while in loop
           } while(dispense());
 
           // check server button
@@ -149,18 +148,18 @@ void loop()
               if ((millis() - startDispensing > serverDispensingTime)) {
                   dispenserState = false;
                   }
-              yield();
-              client.loop();
+              yield();  //let node do some work while in loop
+              client.loop(); //let pubsus do some work while in loop
           } while(dispense());
           serverDispenseButtonState = false; // just in case it exit because of timer
         }
       } else {
-        // in case locked mode change in between dispensing operations, lets close de dispenser
+        // in case locked mode change in between dispensing operations, lets close the dispenser
         dispenserState = false;
         dispense();
       }
 
-            // send remaing space on container
+       // send remaing space on container after dispensing
       if ( millis() - lastSend > elapsedTime ) { // Update and send only after 1 second
         sendRemainingSpaceOnContainer();
         lastSend = millis();
@@ -192,7 +191,7 @@ void readDispenserButtonFCB()
       fullCupButtonState = reading;
 
       if (fullCupButtonState == HIGH) {
-        dispenserState = !dispenserState;
+        dispenserState = !dispenserState; //let dispenser() know about button state change
       }
     }
   }
@@ -226,41 +225,78 @@ void readDispenserButtonHCB()
       halfCupButtonState = reading;
 
       if (halfCupButtonState == HIGH) {
-        dispenserState = !dispenserState;
+        dispenserState = !dispenserState; //let dispenser() know about button state change
       }
     }
   }
 
   // save the reading. Next time through the loop, it'll be the lastButtonState:
   halfCupLastButtonState = reading;
-  
 
 }
 
+/*
+ * If the state of the button changes (check dispenserState variable on read methods) 
+ * and the actual dispenser state the dispenser previousDispensingState opens or closes 
+ */
 bool dispense()
 {
-  static bool previousDispensingState = false;
+  static bool previousDispensingState = false; // static bool is private to the method 
 
 
   if (dispenserState != previousDispensingState) {
     if (dispenserState == true) {
       Serial.println("Abre");
       dispenserServo.write(dispenserOpenPos);
-      processDispenseFromServer(dispenserState);
+      sendDispenseStateToServer(dispenserState); // notify server to update panels
     } 
     else {
         Serial.println("Cierra");
-        processDispenseFromServer(dispenserState);
         dispenserServo.write(dispenserClosePos);
+        sendDispenseStateToServer(dispenserState); // notify server to update panels
       }
+
     previousDispensingState = dispenserState;
   }
+
 
   return dispenserState;
 }
 
+
+// ------- Server related functions ----------------------------------
+/* 
+ *   Telementry
+ *
+ */
+void sendRemainingSpaceOnContainer()
+{
+      
+   
+      const int capacity = JSON_OBJECT_SIZE(4);
+      StaticJsonDocument<capacity> doc;
+
+      double distance = distanceSensor.measureDistanceCm();
+      
+      doc["space"] = distance;
+      
+      String output = "";
+      serializeJson(doc, output);
+      
+ /*     Serial.print("json to send telemetry:");
+      Serial.println(output);
+ */ 
+      char attributes[100];
+      output.toCharArray( attributes, 100 );
+      
+      if (client.publish(telemetryTopic, attributes ) == false) {
+           Serial.println("publish telementry ERROR");
+        }     
+}
+
+
 /*
- * Thingsboard methods
+ * Reuqest / Reply methods
  */
 void on_message(const char* topic, byte* payload, unsigned int length) 
 {
@@ -279,15 +315,11 @@ void on_message(const char* topic, byte* payload, unsigned int length)
   String topicHead = topicStr.substring(0,strlen("v1/devices/me/rpc/request"));
   // Check topic for attributes o request
   if (strcmp(topic, "v1/devices/me/attributes") ==0) { //es un cambio en atributos compartidos
-    Serial.println("----> CAMBIO DE ATRIBUTOS");
     //processAttributeRequestCommand(message);
   } else if (strcmp(topicHead.c_str(), "v1/devices/me/rpc/request") == 0) {
-    // request
-    Serial.println("----> PROCESS REQUEST FROM SERVER");
+    // request from server
     processRequestAndReply(message, topic);
   }
-
-
 }
 
 
@@ -296,8 +328,7 @@ void processRequestAndReply(char *message, const char* topic)
 {
   // Decode JSON request with ArduinoJson 6 https://arduinojson.org/v6/doc/deserialization/
   // Notar que a modo de ejemplo este mensaje se arma utilizando la librería ArduinoJson en lugar de desarmar el string a "mano"
-
-  
+ 
   const int capacity = JSON_OBJECT_SIZE(4);
   StaticJsonDocument<capacity> doc;
   DeserializationError err = deserializeJson(doc, message);
@@ -305,37 +336,44 @@ void processRequestAndReply(char *message, const char* topic)
   if (err) {
     Serial.print(("deserializeJson() failed with code "));
     Serial.println(err.c_str());
-    
     return;
   }
-    
+
+  // Check methods sent form server and process and send reply if required
+
   String methodName = doc["method"];
-  if (methodName.equals("setDispenseValue") &&  serverLockMode == false ) {
+  if (methodName.equals("setDispenseValue") &&  serverLockMode == false ) { // use for dispensing from server panel
     bool response  = doc["params"];
     serverDispenseButtonState = response;
 
-  }  else if (methodName.equals("setLockValue")) {
+  }  else if (methodName.equals("setLockValue")) { // use for locking dispenser from server
     bool response  = doc["params"];
-    processLockFromServer(response);
-  } else if (methodName.equals("empty") &&  serverLockMode == false) {
+    serverLockMode = response;
+    sendoLockStateToServer(serverLockMode);
+  } else if (methodName.equals("empty") &&  serverLockMode == false) { // notify that dispenser is empty acording to values calculated on server
     bool response  = doc["params"];
-    processEmptyFromServer(response);
+    sendEmptyStateToServer(response);
     }
-  else if (methodName.equals("actualizar") &&  serverLockMode == false) {
+  else if (methodName.equals("actualizar") &&  serverLockMode == false) { // cahnges dispensing times to reflect changes on server Panel
     
     fullCupDispensingTime = doc["params"]["elapseTaza"];
     halfCupDispensingTime = doc["params"]["elapseTazaMedia"];
     
   }
+
+  // send response to avoid server timeout
+    String localResponseTopic = String(topic);
+    localResponseTopic.replace("request", "response");  //change topic to preserver requestID
+    client.publish(localResponseTopic.c_str(), message);
+
   
 }
 
-void processLockFromServer(bool response)
+// Notify server to update Lock card in panel
+void sendoLockStateToServer(bool serverLockMode)
 {
     const int capacity = JSON_OBJECT_SIZE(4);
     StaticJsonDocument<capacity> doc;
-   
-    serverLockMode = response;
    
    //Update card
 
@@ -347,26 +385,24 @@ void processLockFromServer(bool response)
     
     char attributes[100];
     output.toCharArray( attributes, 100 );
- 
+/* 
     Serial.print("respuesta aributos: ");
     Serial.println(attributes);
-
+*/
     // se envia la repsuesta la cual se despliegan en las tarjetas creadas para el atrubito 
     client.publish(attributesTopic, attributes);
 
 }
 
-void processDispenseFromServer(bool response)
+void sendDispenseStateToServer(bool response)
 {
    const int capacity = JSON_OBJECT_SIZE(4);
    StaticJsonDocument<capacity> doc;
    
-   serverDispenseButtonState = response;
-    
-   
+   // serverDispenseButtonState = response;
+      
     //Update card
-
-    doc["dispensingState"] = serverDispenseButtonState ? "Dispensando"  :"Dispensado" ;
+    doc["dispensingState"] = response ? "Dispensando"  :"Dispensado" ;
 
     
     String output = "";
@@ -374,15 +410,22 @@ void processDispenseFromServer(bool response)
     
     char attributes[100];
     output.toCharArray( attributes, 100 );
- 
+/* 
     Serial.print("respuesta aributos: ");
     Serial.println(attributes);
-
+*/
     // se envia la repsuesta la cual se despliegan en las tarjetas creadas para el atrubito 
     client.publish(attributesTopic, attributes);
+
+    // update dispendsing Button on server
+    StaticJsonDocument<capacity> responseDoc;
+    responseDoc["method"] = "setDispenseValue";
+    responseDoc["params"] = response ? true  :false ;
+    client.publish(attributesTopic, attributes);
+ 
 }
 
-void processEmptyFromServer(bool response)
+void sendEmptyStateToServer(bool response)
 {
    const int capacity = JSON_OBJECT_SIZE(4);
    StaticJsonDocument<capacity> doc;
@@ -400,47 +443,14 @@ void processEmptyFromServer(bool response)
     
     char attributes[100];
     output.toCharArray( attributes, 100 );
- 
+/* 
     Serial.print("respuesta aributos: ");
     Serial.println(attributes);
-
+*/
     // se envia la repsuesta la cual se despliegan en las tarjetas creadas para el atrubito 
     client.publish(attributesTopic, attributes);
 }
 
-/* 
- *  Solution Sensor management functions
- *
- */
-void sendRemainingSpaceOnContainer()
-{
-      
-   
-      const int capacity = JSON_OBJECT_SIZE(4);
-      StaticJsonDocument<capacity> doc;
-
-      double distance = distanceSensor.measureDistanceCm();
-      
-      doc["space"] = distance;
-      
-      String output = "";
-      serializeJson(doc, output);
-      
-      Serial.print("json to send telemetry:");
-      Serial.println(output);
-  
-      char attributes[100];
-      output.toCharArray( attributes, 100 );
-      
-      if (client.publish(telemetryTopic, attributes ) == true) {
-          Serial.println("publish ok telemetry");
-        } else {
-           Serial.println("publish ERROR");
-        }     
-    
-
-
-}
 
 
 
